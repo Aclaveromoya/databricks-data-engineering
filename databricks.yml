@@ -1,0 +1,52 @@
+bundle:
+  name: casopractico_lakehouse
+
+# Definición de las variables globales de entorno
+variables:
+  environment:
+    description: Entorno de despliegue activo
+    default: dev
+
+# Configuración de los entornos destino (Targets) exigidos por el guion
+targets:
+  dev:
+    workspace:
+      host: https://databricks.com  # En producción corporativa aquí iría tu URL de Dev
+    resources:
+      pipelines:
+        comercial_pipeline_lf:
+          name: lf_pipeline_dev
+          target: dev_casopractico_silver_dev  # Esquema específico de desarrollo
+
+  prod:
+    workspace:
+      host: https://databricks.com  # En producción corporativa aquí iría tu URL de Prod
+    resources:
+      pipelines:
+        comercial_pipeline_lf:
+          name: lf_pipeline_prod
+          target: dev_casopractico_silver_prod  # Esquema específico de producción aislado
+
+# Definición de los recursos que arrastra el bundle (Fase 3, 4 y 5 combinadas)
+resources:
+  pipelines:
+    comercial_pipeline_lf:
+      name: CasoPractico_Lakeflow_Pipeline
+      libraries:
+        - notebook:
+            path: ./src/my_transformation.py
+
+  jobs:
+    orquestacion_diaria_job:
+      name: CasoPractico_Daily_Orchestration
+      tasks:
+        - task_key: 01_Run_Lakeflow_Pipeline
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.comercial_pipeline_lf.id}
+        - task_key: 02_Validation_Check
+          depends_on:
+            - task_key: 01_Run_Lakeflow_Pipeline
+          notebook_task:
+            notebook_path: ./src/05_validation.py
+          retry_policy:
+            max_retries: 2
