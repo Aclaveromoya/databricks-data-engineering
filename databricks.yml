@@ -34,7 +34,7 @@ resources:
       name: CasoPractico_Lakeflow_Pipeline
       libraries:
         - notebook:
-            path: ./src/my_transformation.py
+            path: ./src/03_lakeflow_pipeline.py
 
   jobs:
     orquestacion_diaria_job:

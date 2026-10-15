@@ -1,0 +1,118 @@
+-- Databricks notebook source
+-- MAGIC %md
+-- MAGIC ### Crear datos de prueba
+
+-- COMMAND ----------
+
+-- MAGIC %python
+-- MAGIC import os
+-- MAGIC import pandas as pd
+-- MAGIC from datetime import datetime
+-- MAGIC
+-- MAGIC # Definir la ruta de nuestro volumen raw 
+-- MAGIC raw_path = "/Volumes/dev_casopractico/bronze/raw"
+-- MAGIC os.makedirs(raw_path, exist_ok=True)
+-- MAGIC
+-- MAGIC # 1. Generar Datos de Clientes (con un ID corrupto o nulo)
+-- MAGIC clientes_data = {
+-- MAGIC     "cliente_id": ["C001", "C002", "C003", "ERROR_ROW", "C004"],
+-- MAGIC     "nombre": ["Juan Pérez", "Ana Gómez", "Luis Martínez", None, "María López"],
+-- MAGIC     "email": ["juan@email.com", "ana@email.com", "luis@email.com", "malformado", "maria@email.com"]
+-- MAGIC }
+-- MAGIC df_clientes = pd.DataFrame(clientes_data)
+-- MAGIC df_clientes.to_csv(f"{raw_path}/clientes_20261009.csv", index=False)
+-- MAGIC
+-- MAGIC # 2. Generar Datos de Ventas - Día 1 (Con columna 'tienda' y una fila rota)
+-- MAGIC ventas_dia1 = {
+-- MAGIC     "venta_id": ["V001", "V002", "V003", "V004", "CORRUPT_VENTA"],
+-- MAGIC     "cliente_id": ["C001", "C002", "C001", "C003", None],
+-- MAGIC     "tienda_id": ["TIENDA_MADRID_01", "TIENDA_BARCELONA_01", "TIENDA_MADRID_01", "TIENDA_VALENCIA_01", "TIENDA_MADRID_01"],
+-- MAGIC     "monto": [150.50, 45.00, 99.99, "CIEN_EUROS", 20.00], # "CIEN_EUROS" romperá el tipo de dato numérico en Silver
+-- MAGIC     "fecha": ["2026-10-08", "2026-10-08", "2026-10-08", "2026-10-08", "2026-10-08"]
+-- MAGIC }
+-- MAGIC df_ventas1 = pd.DataFrame(ventas_dia1)
+-- MAGIC df_ventas1.to_csv(f"{raw_path}/ventas_20261008.csv", index=False)
+-- MAGIC
+-- MAGIC print("Esquemas simulados y archivos CSV iniciales creados exitosamente en el volumen raw.")
+-- MAGIC
+
+-- COMMAND ----------
+
+-- MAGIC %python
+-- MAGIC import os
+-- MAGIC import pandas as pd
+-- MAGIC
+-- MAGIC raw_path = "/Volumes/dev_casopractico/bronze/raw"
+-- MAGIC os.makedirs(raw_path, exist_ok=True)
+-- MAGIC
+-- MAGIC # ── CSV 1: Productos (con un precio nulo y una categoría vacía) ──
+-- MAGIC productos = {
+-- MAGIC     "producto_id": ["P001", "P002", "P003", "P004", "P005"],
+-- MAGIC     "nombre": ["Laptop", "Mouse", "Teclado", "Monitor", "Webcam"],
+-- MAGIC     "categoria": ["Electrónica", "Accesorios", "Accesorios", "", "Accesorios"],
+-- MAGIC     "precio": [1200.00, 25.50, 45.00, None, 60.00]
+-- MAGIC }
+-- MAGIC pd.DataFrame(productos).to_csv(f"{raw_path}/productos_20261009.csv", index=False)
+-- MAGIC
+-- MAGIC # ── CSV 2: Ventas – Día 2 (nuevas filas, una con monto no numérico) ──
+-- MAGIC ventas_dia2 = {
+-- MAGIC     "venta_id": ["V005", "V006", "V007", "V008", "V009"],
+-- MAGIC     "cliente_id": ["C002", "C003", "C004", "C001", "C002"],
+-- MAGIC     "tienda_id": ["TIENDA_SEVILLA_01", "TIENDA_MADRID_01", "TIENDA_BARCELONA_01",
+-- MAGIC                   "TIENDA_VALENCIA_01", "TIENDA_SEVILLA_01"],
+-- MAGIC     "monto": [200.00, 15.75, 80.00, "CERO", 300.00],
+-- MAGIC     "fecha": ["2026-10-09", "2026-10-09", "2026-10-09", "2026-10-09", "2026-10-09"]
+-- MAGIC }
+-- MAGIC pd.DataFrame(ventas_dia2).to_csv(f"{raw_path}/ventas_20261009.csv", index=False)
+-- MAGIC
+-- MAGIC # ── CSV 3: Ventas – Día 3 (un cliente_id inexistente y una fila duplicada) ──
+-- MAGIC ventas_dia3 = {
+-- MAGIC     "venta_id": ["V010", "V011", "V012", "V012", "V013"],
+-- MAGIC     "cliente_id": ["C001", "C999", "C003", "C003", "C004"],
+-- MAGIC     "tienda_id": ["TIENDA_MADRID_01", "TIENDA_BILBAO_01", "TIENDA_VALENCIA_01",
+-- MAGIC                   "TIENDA_VALENCIA_01", "TIENDA_BARCELONA_01"],
+-- MAGIC     "monto": [50.00, 175.25, 90.00, 90.00, 110.00],
+-- MAGIC     "fecha": ["2026-10-10", "2026-10-10", "2026-10-10", "2026-10-10", "2026-10-10"]
+-- MAGIC }
+-- MAGIC pd.DataFrame(ventas_dia3).to_csv(f"{raw_path}/ventas_20261010.csv", index=False)
+-- MAGIC
+-- MAGIC # ── CSV 4: Ventas – Día 4  ──
+-- MAGIC ventas_dia4 = {
+-- MAGIC     "venta_id": ["V020", "V021"],
+-- MAGIC     "cliente_id": ["C020", "C999"],
+-- MAGIC     "tienda_id": ["TIENDA_MADRID_01", "TIENDA_BILBAO_01"],
+-- MAGIC     "monto": [150.00, 275.25],
+-- MAGIC     "fecha": ["2026-10-11", "2026-10-11"]
+-- MAGIC }
+-- MAGIC pd.DataFrame(ventas_dia4).to_csv(f"{raw_path}/ventas_20261011.csv", index=False)
+-- MAGIC
+-- MAGIC print("4 CSV generados correctamente:")
+-- MAGIC print(f"  - {raw_path}/productos_20261009.csv")
+-- MAGIC print(f"  - {raw_path}/ventas_20261009.csv")
+-- MAGIC print(f"  - {raw_path}/ventas_20261010.csv")
+-- MAGIC print(f"  - {raw_path}/ventas_20261011.csv")
+-- MAGIC
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC ### Creamos  Volumen llamado "checkpoints" en el esquema bronze
+
+-- COMMAND ----------
+
+CREATE VOLUME IF NOT EXISTS dev_casopractico.bronze.checkpoints;
+
+-- COMMAND ----------
+
+-- MAGIC %python
+-- MAGIC # Simular llegada al volumen raw de un cambio de datos (un cliente nuevo y una actualización)
+-- MAGIC import pandas as pd
+-- MAGIC raw_path = "/Volumes/dev_casopractico/bronze/raw"
+-- MAGIC
+-- MAGIC clientes_nuevos = {
+-- MAGIC     "cliente_id": ["C002", "C005"], 
+-- MAGIC     "nombre": ["Ana Gómez Modificado", "Carlos Slim"], # C002 cambia de nombre, C005 es nuevo
+-- MAGIC     "email": ["ana.nueva@email.com", "carlos@email.com"]
+-- MAGIC }
+-- MAGIC pd.DataFrame(clientes_nuevos).to_csv(f"{raw_path}/clientes_updates.csv", index=False)
+-- MAGIC

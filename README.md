@@ -1,6 +1,6 @@
 # 🏪 Caso Práctico: Arquitectura Lakehouse Medallion end to end en Databricks
 
-Este repositorio contiene la implementación completa, gobernada y automatizada de un **Lakehouse corporativo** para una cadena de tiendas retail. El proyecto ha sido desarrollado bajo metodologías de producción (**DataOps**), utilizando estructuras de tres niveles en **Unity Catalog** y desplegando tanto pipelines imperativos como declarativos de última generación.
+Este repositorio contiene la implementación completa, gobernada y automatizada de un **Lakehouse corporativo** para una cadena de tiendas retail. El proyecto ha sido desarrollado bajo metodologías de producción (**DataOps**), utilizando estructuras de tres niveles en **Unity Catalog** y desplegando tanto pipelines imperativos como declarativos.
 
 ---
 
